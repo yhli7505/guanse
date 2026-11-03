@@ -38,6 +38,12 @@ body:has(#tray:not(:empty)) #toast{bottom:calc(var(--tray-height, 80px) + var(--
 /* Keep the page width stable when content starts or stops overflowing. */
 html{scrollbar-gutter:stable;scroll-padding-bottom:calc(var(--tray-height, 0px) + 24px)}
 @supports not (scrollbar-gutter:stable){html{overflow-y:scroll}}
+html:has(#dialog[open]){overflow:hidden;overscroll-behavior:none}
+#dialog{overflow:auto;overscroll-behavior:contain}
+@media(hover:none){
+  /* Pin the background where it was opened, including during a swipe on mobile Safari. */
+  html:has(#dialog[open]) body{position:fixed;inset:var(--dialog-offset, 0px) 0 auto}
+}
 
 /* Pure color browsing affects only the explore grid; accessible names remain. */
 #color-grid.pure-colors .color-glyph,#color-grid.pure-colors .card-top,#color-grid.pure-colors .card-meta{display:none}
@@ -3233,7 +3239,31 @@ document.addEventListener('drop',event=>{
 
 document.addEventListener('dragend',clearColorDrag);
 
-function openDialog(html){$('#dialog-content').innerHTML=html;if(!$('#dialog').open)$('#dialog').showModal()}
+const dialog=$('#dialog');
+let dialogScrollY=null;
+function openDialog(html){
+  $('#dialog-content').innerHTML=html;
+  if(dialog.open)return;
+  dialogScrollY=window.scrollY;
+  document.documentElement.style.setProperty('--dialog-offset',`${-dialogScrollY}px`);
+  dialog.showModal();
+}
+function restoreDialogScroll(){
+  if(dialog.open||dialogScrollY===null)return;
+  const top=dialogScrollY;
+  dialogScrollY=null;
+  document.documentElement.style.removeProperty('--dialog-offset');
+  window.scrollTo({top,behavior:'instant'});
+}
+function closeDialog(){
+  dialog.close();
+  restoreDialogScroll();
+}
+dialog.addEventListener('close',restoreDialogScroll);
+dialog.addEventListener('cancel',event=>{
+  event.preventDefault();
+  closeDialog();
+});
 function showDetail(id){const c=colors[id];if(!c)return;const [h,s,l]=hsl(c.hex),[r,g,b]=rgb(c.hex);const near=colors.filter(x=>x.id!==c.id).sort((a,b)=>rgb(a.hex).reduce((s,v,i)=>s+(v-rgb(c.hex)[i])**2,0)-rgb(b.hex).reduce((s,v,i)=>s+(v-rgb(c.hex)[i])**2,0)).slice(0,5);openDialog(`<div class="detail"><div class="detail-color" style="background:${c.hex};color:${ink(c.hex)}"><h2 id="detail-swatch-name" ${hideDetailName?'hidden':''}>${esc(c.aliases?.[0]||c.name)}</h2></div><div class="detail-body"><span class="eyebrow">中国色彩档案 / ${String(id+1).padStart(3,'0')}</span><h3>${esc(c.name)}</h3><p class="meta">${families.find(f=>f[0]===c.family)[1]}色系 · ${l>75?'轻盈浅调':l<35?'沉静深调':'柔和中调'}</p>${colorProvenance(c)}<div class="values">${[['HEX',c.hex],['RGB',`rgb(${r}, ${g}, ${b})`],['HSL',`hsl(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`]].map(([n,v])=>`<div class="value-row"><span>${n}</span><div class="value-actions"><span>${v}</span><button type="button" class="icon-button value-copy" data-action="copy" data-value="${v}" title="复制 ${n} 色值" aria-label="复制 ${n} 色值">${icon('copy')}</button></div></div>`).join('')}</div><div class="hero-actions"><button class="btn primary" data-action="add" data-id="${id}">${icon('plus')} 加入配色</button><button class="btn" data-action="favorite" data-id="${id}" aria-pressed="${favorites.has(id)}">${icon('heart')} ${favorites.has(id)?'已收藏':'收藏'}</button><button type="button" class="btn" data-action="toggle-detail-name" aria-controls="detail-swatch-name" aria-expanded="${!hideDetailName}">${hideDetailName?'显示色名':'隐藏色名'}</button></div><p class="meta" style="margin:23px 0 7px">相近色彩</p><div class="related">${near.map(n=>`<button style="background:${n.hex}" data-action="detail" data-id="${n.id}" aria-label="查看${esc(n.name)}" title="${esc(n.name)}"></button>`).join('')}</div></div></div>`)}
 function savePalette(cs,name){saved.unshift({id:Date.now(),name,colors:cs.map(c=>({name:c.name,hex:c.hex})),created:new Date().toISOString()});sync();toast('配色已保存到我的收藏')}
 function askSave(){openDialog(`<form class="dialog-padded" id="save-form"><h2>给这组颜色起个名字</h2><div class="field"><label for="palette-name">配色名称</label><input id="palette-name" maxlength="30" required value="未命名配色 ${saved.length+1}"></div><button class="btn primary" type="submit">保存到我的收藏</button></form>`);$('#palette-name').select()}
@@ -3248,7 +3278,7 @@ case 'back-to-top':
 case 'clear-extract':clearExtractImage();break;
 case 'feature-prev':moveFeatureSlide(-1,true);scheduleFeatureRotation();break;
 case 'feature-next':moveFeatureSlide(1,true);scheduleFeatureRotation();break;
-case 'copy':copy(el.dataset.value);break;case 'detail':showDetail(id);break;case 'close':$('#dialog').close();break;case 'random-detail':showDetail(Math.floor(Math.random()*colors.length));break;
+case 'copy':copy(el.dataset.value);break;case 'detail':showDetail(id);break;case 'close':closeDialog();break;case 'random-detail':showDetail(Math.floor(Math.random()*colors.length));break;
 case 'toggle-detail-name':
   hideDetailName=!hideDetailName;
   $('#detail-swatch-name').hidden=hideDetailName;
@@ -3278,7 +3308,7 @@ case 'favorite': {
 }
 case 'add':if(draft.length>=8){toast('草稿最多 8 色，可先移除一色');break}if(draft.some(x=>x.hex===c.hex)){toast('这抹颜色已在草稿里');break}draft.push({...c,locked:false});sync();toast(c.name+' 已加入配色草稿');break;case 'choose-draft-target':chooseDraftTarget(i);break;
 case 'remove-draft':
-  if(el.closest('#draft-apply-form'))$('#dialog').close();
+  if(el.closest('#draft-apply-form'))closeDialog();
   draft.splice(i,1);
   sync();
   break;
@@ -3312,7 +3342,7 @@ case 'favorite-theme': {
   el.title=label;
   break;
 }
-case 'generate':generate();break;case 'undo':if(history.length){studio=history.pop();sync();renderStudio();toast('已恢复上一组配色')}break;case 'lock':studio[i].locked=!studio[i].locked;sync();renderStudio();break;case 'move':moveStudioColor(i,Number(el.dataset.step));break;case 'remove-studio':if(studio.length>2){pushHistory();studio.splice(i,1);sync();renderStudio()}break;case 'add-studio':if(studio.length<8){pushHistory();studio.push({...colors[Math.floor(Math.random()*colors.length)],locked:false});sync();renderStudio()}break;case 'copy-all':copy(studio.map(c=>c.hex).join(', '));break;case 'save-studio':askSave();break;case 'export':exportPalette(el.dataset.format);break;case 'test-studio':fg=studio[studioTextIndex].hex;bg=studio[studioBackgroundIndex].hex;location.hash='contrast';break;case 'swap-contrast':[fg,bg]=[bg,fg];renderContrast();break;case 'use-extracted':if(extracted.length<2){toast('图片颜色较单一，请选择更丰富的画面');break}pushHistory();studio=extracted.map(c=>({name:c.name,hex:c.hex,locked:false}));sync();location.hash='studio';break;case 'collection-tab':collectionTab=el.dataset.value;renderCollection();break;case 'load-saved':pushHistory();studio=saved[i].colors.map(c=>({...c,locked:false}));sync();location.hash='studio';break;case 'delete-palette':const removed=saved.splice(i,1)[0];sync();renderCollection();openDialog(`<div class="dialog-padded"><h2>已移除「${esc(removed.name)}」</h2><p>如果是误操作，可以立即撤销。</p><button class="btn" id="restore-palette">撤销移除</button><button class="btn primary" data-action="close">完成</button></div>`);$('#restore-palette').onclick=()=>{saved.splice(i,0,removed);sync();renderCollection();$('#dialog').close();toast('已恢复配色')};break;case 'backup':download(JSON.stringify({app:'guanse',version:1,favorites:[...favorites],palettes:saved},null,2),'观色-收藏备份.json','application/json');break;case 'import':$('#import-input').click();break;case 'toggle-theme':document.body.classList.toggle('dark');persist('dark',document.body.classList.contains('dark'));syncThemeToggle();break;}});
+case 'generate':generate();break;case 'undo':if(history.length){studio=history.pop();sync();renderStudio();toast('已恢复上一组配色')}break;case 'lock':studio[i].locked=!studio[i].locked;sync();renderStudio();break;case 'move':moveStudioColor(i,Number(el.dataset.step));break;case 'remove-studio':if(studio.length>2){pushHistory();studio.splice(i,1);sync();renderStudio()}break;case 'add-studio':if(studio.length<8){pushHistory();studio.push({...colors[Math.floor(Math.random()*colors.length)],locked:false});sync();renderStudio()}break;case 'copy-all':copy(studio.map(c=>c.hex).join(', '));break;case 'save-studio':askSave();break;case 'export':exportPalette(el.dataset.format);break;case 'test-studio':fg=studio[studioTextIndex].hex;bg=studio[studioBackgroundIndex].hex;location.hash='contrast';break;case 'swap-contrast':[fg,bg]=[bg,fg];renderContrast();break;case 'use-extracted':if(extracted.length<2){toast('图片颜色较单一，请选择更丰富的画面');break}pushHistory();studio=extracted.map(c=>({name:c.name,hex:c.hex,locked:false}));sync();location.hash='studio';break;case 'collection-tab':collectionTab=el.dataset.value;renderCollection();break;case 'load-saved':pushHistory();studio=saved[i].colors.map(c=>({...c,locked:false}));sync();location.hash='studio';break;case 'delete-palette':const removed=saved.splice(i,1)[0];sync();renderCollection();openDialog(`<div class="dialog-padded"><h2>已移除「${esc(removed.name)}」</h2><p>如果是误操作，可以立即撤销。</p><button class="btn" id="restore-palette">撤销移除</button><button class="btn primary" data-action="close">完成</button></div>`);$('#restore-palette').onclick=()=>{saved.splice(i,0,removed);sync();renderCollection();closeDialog();toast('已恢复配色')};break;case 'backup':download(JSON.stringify({app:'guanse',version:1,favorites:[...favorites],palettes:saved},null,2),'观色-收藏备份.json','application/json');break;case 'import':$('#import-input').click();break;case 'toggle-theme':document.body.classList.toggle('dark');persist('dark',document.body.classList.contains('dark'));syncThemeToggle();break;}});
 document.addEventListener('input',e=>{const el=e.target;if(el.id==='search'){query=el.value.trim();limit=36;renderColorGrid()}if(el.id==='fg-picker'||el.id==='bg-picker'){const id=el.id.slice(0,2);if(id==='fg')fg=el.value.toUpperCase();else bg=el.value.toUpperCase();$('#'+id).value=el.value.toUpperCase();$('#'+id).removeAttribute('aria-invalid');updateContrast()}if(el.id==='fg'||el.id==='bg'){const v=el.value.toUpperCase();el.setAttribute('aria-invalid',String(!validHex(v)));if(validHex(v)){if(el.id==='fg')fg=v;else bg=v;$('#'+el.id+'-picker').value=v;updateContrast()}else updateContrastColorName(el.id)}});
 document.addEventListener('change',e=>{
 const el=e.target;
@@ -3333,7 +3363,7 @@ document.addEventListener('submit',e=>{
     const selector=page==='studio'?`.studio-color[data-draft-studio="${value}"]`:`.field[data-draft-contrast="${value}"]`;
     const target=$(selector);
     if(!target||!color)return;
-    $('#dialog').close();
+    closeDialog();
     replaceWithDraft(target,color);
     $(selector)?.scrollIntoView({block:'nearest'});
   }else if(e.target.id==='save-form'){
@@ -3341,12 +3371,12 @@ document.addEventListener('submit',e=>{
     const name=$('#palette-name').value.trim();
     if(!name){toast('请为这组配色输入名称');return}
     savePalette(studio,name);
-    $('#dialog').close();
+    closeDialog();
   }
 });
 document.addEventListener('keydown',e=>{const editing=/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable;if(e.key==='/'&&!editing&&!$('#dialog').open&&page==='explore'){e.preventDefault();$('#search').focus()}if(e.code==='Space'&&!editing&&e.target.tagName!=='BUTTON'&&e.target.tagName!=='A'&&!$('#dialog').open&&page==='studio'){e.preventDefault();generate()}});
-$('#dialog').addEventListener('click',e=>{if(e.target===$('#dialog')){const r=$('#dialog').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('#dialog').close()}});
-window.addEventListener('hashchange',()=>{if($('#dialog').open)$('#dialog').close();render();window.scrollTo({top:0,behavior:'instant'})});
+$('#dialog').addEventListener('click',e=>{if(e.target===$('#dialog')){const r=$('#dialog').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeDialog()}});
+window.addEventListener('hashchange',()=>{if($('#dialog').open)closeDialog();render();window.scrollTo({top:0,behavior:'instant'})});
 $$('[data-icon]').forEach(el=>el.innerHTML=icon(el.dataset.icon));if(load('dark',false))document.body.classList.add('dark');syncThemeToggle();
 try{colors=window.GUANSE_COLORS;if(!Array.isArray(colors)||!colors.length)throw Error('missing colors');draft=draft.map(resolveColorName);studio=studio.map(resolveColorName);saved=saved.map(p=>({...p,colors:p.colors.map(resolveColorName)}));favorites=new Set([...favorites].filter(i=>colors[i]));if(!studio.length)studio=themeColors(themes[0]);sync();render()}catch{$('#main').innerHTML='<div class="empty"><h1>色库暂时没有加载成功</h1><p>色库数据未能读取，请重新打开完整的 HTML 文件。</p><button class="btn primary" id="retry">重新加载</button></div>';$('#retry').onclick=()=>location.reload()}
 

@@ -37,6 +37,12 @@ body:has(#tray:not(:empty)) #toast{bottom:calc(var(--tray-height, 80px) + var(--
 /* Keep the page width stable when content starts or stops overflowing. */
 html{scrollbar-gutter:stable;scroll-padding-bottom:calc(var(--tray-height, 0px) + 24px)}
 @supports not (scrollbar-gutter:stable){html{overflow-y:scroll}}
+html:has(#dialog[open]){overflow:hidden;overscroll-behavior:none}
+#dialog{overflow:auto;overscroll-behavior:contain}
+@media(hover:none){
+  /* Pin the background where it was opened, including during a swipe on mobile Safari. */
+  html:has(#dialog[open]) body{position:fixed;inset:var(--dialog-offset, 0px) 0 auto}
+}
 
 /* Pure color browsing affects only the explore grid; accessible names remain. */
 #color-grid.pure-colors .color-glyph,#color-grid.pure-colors .card-top,#color-grid.pure-colors .card-meta{display:none}

@@ -28,7 +28,7 @@ body:has(#tray:not(:empty)) #toast{bottom:calc(var(--tray-height, 80px) + var(--
   :root:not([data-input-mode="pointer"]) .color-card:has(:focus-visible) .card-actions button,
   :root[data-input-mode="keyboard"] .color-card:focus-within .card-actions button{opacity:1;pointer-events:auto}
 }
-.palette-caption [data-saved="true"] svg{fill:currentColor}
+.palette-caption [aria-pressed="true"] svg{fill:currentColor}
 @media(max-width:520px){.header nav,.filters{scrollbar-width:none}.header nav::-webkit-scrollbar,.filters::-webkit-scrollbar{display:none}.hero h1{font-size:29px;letter-spacing:1px;line-height:1.5;margin-bottom:15px}.hero h1 span{display:inline}.hero-copy>p{display:none}.hero-actions{margin-bottom:18px}.feature{height:90px}.feature-copy{padding:14px 17px}.feature .eyebrow{display:none}.feature h2{font-size:21px;margin-bottom:3px}.feature-art{height:90px;padding-top:12px}.feature-art span{font-size:11px;bottom:9px}.feature .text-button{padding:3px 0}.section-head{margin-top:22px}}
 
 .header-actions{display:flex;align-items:center;gap:16px;flex-shrink:0}.theme-toggle{flex-shrink:0;color:var(--muted);border-radius:50%}.theme-toggle:hover{color:var(--ink)}

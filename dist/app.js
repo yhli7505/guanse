@@ -178,15 +178,15 @@ function renderColorGrid(){
   updateColorLoader(a.length);
 }
 
-function isThemeSaved(theme, themePalette){
-  return saved.some(p=>p.name===theme.name&&p.colors.length===themePalette.length&&
-    p.colors.every((color,index)=>color.hex.toUpperCase()===themePalette[index].hex));
+function matchesTheme(palette,theme,themeColors){
+  return palette.name===theme.name&&palette.colors.length===themeColors.length&&
+    palette.colors.every((color,index)=>color.hex.toUpperCase()===themeColors[index].hex);
 }
 function paletteCard(t,i,isSaved=false){
   const cs=isSaved?t.colors:themeColors(t);
-  const collected=!isSaved&&isThemeSaved(t,cs);
-  const label=(isSaved?'移除':collected?'已收藏':'收藏')+t.name;
-  return `<article class="palette-card"><button class="palette-strip" data-action="${isSaved?'load-saved':'use-theme'}" data-index="${i}" aria-label="使用${esc(t.name)}配色">${cs.map(c=>`<span style="background:${c.hex};color:${ink(c.hex)}"><i>${esc(shortColorName(c.name,3))}</i></span>`).join('')}</button><div class="palette-caption"><div><h3>${esc(t.name)} <span class="palette-count">${cs.length} 色</span></h3><p>${esc(t.desc||'我的配色')}</p></div><button class="icon-button" data-action="${isSaved?'delete-palette':'save-theme'}" data-index="${i}" data-saved="${collected}" aria-label="${esc(label)}" title="${esc(label)}">${isSaved?'×':icon('heart')}</button></div></article>`;
+  const collected=!isSaved&&saved.some(palette=>matchesTheme(palette,t,cs));
+  const label=(isSaved?'移除':collected?'取消收藏':'收藏')+t.name;
+  return `<article class="palette-card"><button class="palette-strip" data-action="${isSaved?'load-saved':'use-theme'}" data-index="${i}" aria-label="使用${esc(t.name)}配色">${cs.map(c=>`<span style="background:${c.hex};color:${ink(c.hex)}"><i>${esc(shortColorName(c.name,3))}</i></span>`).join('')}</button><div class="palette-caption"><div><h3>${esc(t.name)} <span class="palette-count">${cs.length} 色</span></h3><p>${esc(t.desc||'我的配色')}</p></div><button class="icon-button" data-action="${isSaved?'delete-palette':'favorite-theme'}" data-index="${i}" ${isSaved?'':`aria-pressed="${collected}"`} aria-label="${esc(label)}" title="${esc(label)}">${isSaved?'×':icon('heart')}</button></div></article>`;
 }
 function renderPalettes(){$('#main').innerHTML=pageHead('配色灵感','从四时风物中，借一组恰到好处的颜色。',`<a class="btn primary" href="#studio">自定义配色 ${icon('arrow')}</a>`)+`<div class="filters">${['all','四时','山野','器物','建筑'].map(v=>`<button class="filter ${themeFilter===v?'active':''}" data-action="theme-filter" data-value="${v}">${v==='all'?'全部灵感':v}</button>`).join('')}</div><div class="section-head"><span class="meta">${themes.filter(t=>themeFilter==='all'||t.tag===themeFilter).length} 组原创搭配 · 点击色带进入工作台</span></div><div class="palette-grid">${themes.map((t,i)=>themeFilter==='all'||t.tag===themeFilter?paletteCard(t,i):'').join('')}</div>`}
 function pushHistory(){history.push(studio.map(c=>({...c})));if(history.length>30)history.shift()}
@@ -655,12 +655,18 @@ case 'use-theme':
   studio=themeColors(themes[i]);
   if(a==='use-feature-theme')studio=studio.slice(0,featuredColorCount);
   sync();location.hash='studio';break;
-case 'save-theme': {
+case 'favorite-theme': {
   const theme=themes[i], palette=themeColors(theme);
-  if(isThemeSaved(theme,palette)){toast('这组配色已经收藏');break}
-  savePalette(palette,theme.name);
-  const label='已收藏'+theme.name;
-  el.dataset.saved='true';
+  const remaining=saved.filter(entry=>!matchesTheme(entry,theme,palette));
+  const collected=remaining.length===saved.length;
+  if(collected)savePalette(palette,theme.name);
+  else{
+    saved=remaining;
+    sync();
+    toast('已取消收藏 '+theme.name);
+  }
+  const label=(collected?'取消收藏':'收藏')+theme.name;
+  el.setAttribute('aria-pressed',String(collected));
   el.setAttribute('aria-label',label);
   el.title=label;
   break;

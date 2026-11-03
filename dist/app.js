@@ -80,7 +80,7 @@ function updateBackToTop(){
 window.addEventListener('scroll',updateBackToTop,{passive:true});
 window.addEventListener('resize',updateBackToTop);
 function render(){stopColorLoader();clearInterval(featureTimer);page=location.hash.slice(1).split('?')[0]||'explore';if(!['explore','palettes','studio','extract','contrast','collection'].includes(page))page='explore';setNav();const renders={explore:renderExplore,palettes:renderPalettes,studio:renderStudio,extract:renderExtract,contrast:renderContrast,collection:renderCollection};renders[page]();renderTray();updateBackToTop();}
-function colorCard(c){return `<article class="color-card"><div class="swatch" style="background:${c.hex};color:${ink(c.hex)}"><button class="swatch-open" data-action="detail" data-id="${c.id}" aria-label="查看${esc(c.name)}色彩详情"><span class="color-glyph">${esc(shortColorName(c.name,3))}</span></button><span class="card-top">${String(c.id+1).padStart(3,'0')}</span><div class="card-actions"><button data-action="add" data-id="${c.id}" aria-label="将${esc(c.name)}加入配色">${icon('plus')}</button><button data-action="favorite" data-id="${c.id}" class="${favorites.has(c.id)?'selected':''}" aria-label="${favorites.has(c.id)?'取消收藏':'收藏'}${esc(c.name)}" aria-pressed="${favorites.has(c.id)}">${icon('heart')}</button></div></div><div class="card-meta"><button class="card-name" data-action="detail" data-id="${c.id}">${esc(c.name)}</button><button class="hex-button" data-action="copy" data-value="${c.hex}" aria-label="复制${c.name}色值">${c.hex}</button></div></article>`}
+function colorCard(c){return `<article class="color-card"><div class="swatch" style="background:${c.hex};color:${ink(c.hex)}"><button class="swatch-open" data-action="detail" data-id="${c.id}" aria-label="查看${esc(c.name)}色彩详情"><span class="color-glyph">${esc(shortColorName(c.name,3))}</span></button><span class="card-top">${String(c.id+1).padStart(3,'0')}</span></div><div class="card-meta"><button class="card-name" data-action="detail" data-id="${c.id}">${esc(c.name)}</button><button class="hex-button" data-action="copy" data-value="${c.hex}" aria-label="复制${c.name}色值">${c.hex}</button></div><div class="card-actions"><button data-action="add" data-id="${c.id}" aria-label="将${esc(c.name)}加入配色">${icon('plus')}</button><button data-action="favorite" data-id="${c.id}" class="${favorites.has(c.id)?'selected':''}" aria-label="${favorites.has(c.id)?'取消收藏':'收藏'}${esc(c.name)}" aria-pressed="${favorites.has(c.id)}">${icon('heart')}</button></div></article>`}
 const featuredThemes=[
   {name:'松风入墨',surface:'#E2E9DF',darkSurface:'#29362E'},
   {name:'桃花小笺',surface:'#F3E5E6',darkSurface:'#3A2C32'},
@@ -179,7 +179,14 @@ function updateColorLoader(total){
 function renderColorGrid(){
   stopColorLoader();
   const a=filteredColors();
-  $('#result-count').textContent=`${query?'搜索结果':'正在探索'} ${a.length} 种颜色${filter==='all'?'':' · '+families.find(f=>f[0]===filter)[1]+'色系'}`;
+  const resultCount=$('#result-count');
+  resultCount.textContent=`${query?'搜索结果':'正在探索'} ${a.length} 种颜色`;
+  if(filter!=='all'){
+    const familyLabel=document.createElement('span');
+    familyLabel.className='result-family';
+    familyLabel.textContent=` · ${families.find(f=>f[0]===filter)[1]}色系`;
+    resultCount.append(familyLabel);
+  }
   $('#color-grid').innerHTML=a.length?a.slice(0,limit).map(colorCard).join(''):`<div class="empty"><h3>还没有遇见这抹颜色</h3><p>试试其他色名、HEX 色值，或清除筛选。</p><button class="btn" data-action="reset-filter">查看全部色彩</button></div>`;
   updateColorLoader(a.length);
 }

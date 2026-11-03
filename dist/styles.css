@@ -360,3 +360,13 @@ select:focus-visible,:root[data-input-mode="keyboard"] select:focus{outline:none
 @media(min-width:361px) and (max-width:600px){
   .hero h1 br{display:none}
 }
+
+.back-to-top{display:none}
+@media(min-width:801px) and (hover:hover) and (pointer:fine){
+  .back-to-top:not([hidden]){
+    display:inline-flex;position:fixed;z-index:4;
+    inset-inline-end:max(24px, calc((100% - 1440px) / 2 + 48px));
+    bottom:calc(var(--tray-height, 0px) + var(--tray-offset) + 12px)
+  }
+  .back-to-top .icon{width:16px;height:16px;transform:rotate(-90deg)}
+}

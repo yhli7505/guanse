@@ -225,6 +225,7 @@ select:focus-visible,:root[data-input-mode="keyboard"] select:focus{outline:none
 
 /* Touch controls and the phone layout share the same reading order. */
 .touch-move-hint{display:none}
+.tray-hint-mobile{display:none}
 .draft-choice{display:flex;align-items:center;gap:10px}
 .draft-choice span{width:24px;height:24px;flex:none;border:1px solid var(--line);border-radius:4px}
 .draft-dialog-actions{display:flex;flex-wrap:wrap;gap:8px}
@@ -333,6 +334,7 @@ select:focus-visible,:root[data-input-mode="keyboard"] select:focus{outline:none
   }
   #tray:empty{display:none}
   .tray-label{white-space:normal;line-height:1.35}
+  .tray-label .tray-hint{display:inline;margin-inline-start:6px}
   .tray-swatches{grid-area:2/1;min-width:0;gap:4px}
   .tray-swatches button{flex:1 1 0;max-width:44px;min-width:0;width:auto;height:34px;padding:0}
   #tray :is(.tray-clear,.btn){min-height:36px}
@@ -355,7 +357,7 @@ select:focus-visible,:root[data-input-mode="keyboard"] select:focus{outline:none
     grid-area:actions;align-self:center;gap:0;margin:7px 0 0
   }
   .color-grid:not(.pure-colors) .card-actions button{
-    width:26px;height:32px;padding:0;background:transparent;color:var(--ink)
+    width:26px;height:26px;padding:0;background:transparent;color:var(--ink)
   }
   .color-grid:not(.pure-colors) .card-actions button:is(:hover,:focus-visible){background:var(--soft)}
   .color-grid:not(.pure-colors) .card-actions svg{width:16px;height:16px}

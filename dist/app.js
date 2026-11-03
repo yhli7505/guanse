@@ -482,8 +482,10 @@ function renderTray(){
     return;
   }
   const tapToReplace=canReplace&&touchInterface.matches;
-  const hint=tapToReplace?'点选色块替换':page==='studio'?'拖到色卡上替换颜色':'拖到文字色或背景色上替换';
-  tray.innerHTML=`<div class="tray-label">配色草稿 <strong>${draft.length}/8</strong>${canReplace?`<span class="tray-hint">${hint}</span>`:''}</div>
+  const hint=canReplace
+    ? (tapToReplace?'点按色块替换或移除':page==='studio'?'拖到色卡上替换颜色':'拖到文字色或背景色上替换')
+    : '轻点色块可移除';
+  tray.innerHTML=`<div class="tray-label">配色草稿 <strong>${draft.length}/8</strong><span class="tray-hint${canReplace?'':' tray-hint-mobile'}">${hint}</span></div>
     <div class="tray-swatches">${draft.map((c,i)=>{
       const name=esc(c.name);
       const label=tapToReplace?`选择草稿色${name}`:`从草稿移除${name}`;

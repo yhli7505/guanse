@@ -3218,6 +3218,10 @@ document.addEventListener('pointerdown',event=>{
 });
 
 document.addEventListener('dragstart',event=>{
+  if(event.target.closest('a[href],button:not([draggable="true"])')){
+    event.preventDefault();
+    return;
+  }
   if(!event.dataTransfer)return;
   const card=event.target.closest('.studio-color[draggable="true"]');
   if(card&&page==='studio'){

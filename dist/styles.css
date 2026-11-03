@@ -2,7 +2,16 @@
 body{--tray-offset:20px}
 #tray{bottom:var(--tray-offset)}
 body:has(#tray:not(:empty)) #toast{bottom:calc(var(--tray-height, 80px) + var(--tray-offset) + 10px)}
-@media(hover:hover){.tray-swatches [data-action="remove-draft"]:hover:after{content:'×';position:absolute;inset:0;background:#ffffff90;font-size:22px;color:#111}}#toast{position:fixed;bottom:100px;left:50%;transform:translate(-50%,10px);background:var(--ink);color:white;padding:11px 23px;border-radius:6px;z-index:30;opacity:0;pointer-events:none;font-size:13px;transition:opacity .2s,transform .2s;width:max-content;max-width:calc(100% - 32px);text-align:center}#toast.show{opacity:1;transform:translate(-50%,0)}dialog{border:0;padding:0;border-radius:12px;width:min(740px,calc(100% - 32px));max-height:90vh;color:var(--ink);background:var(--surface)}dialog::backdrop{background:#19271f75}.dialog-close{position:absolute;right:12px;top:12px;z-index:2;background:#ffffffd9;font-size:24px}.detail{display:grid;grid-template-columns:.8fr 1fr}.detail-color{min-height:430px;display:flex;align-items:center;justify-content:center}.detail-color h2{font:45px var(--serif);writing-mode:vertical-rl;letter-spacing:12px}.detail-body{padding:48px 32px 30px}.detail-body h3{font:28px var(--serif);margin:10px 0}.values{margin:24px 0}.value-row{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:7px 0;font-size:12px;gap:10px}.value-row>span{color:var(--muted)}
+/* Center the remove icon in the swatch independently of font metrics. */
+.tray-remove-mark{
+  position:absolute;inset:0;display:grid;place-items:center;visibility:hidden;
+  border-radius:inherit;background:#ffffff90;color:#242c28;pointer-events:none
+}
+.tray-remove-mark .icon{width:16px;height:16px}
+:root:not([data-input-mode="pointer"]) .tray-swatches button:focus-visible .tray-remove-mark{visibility:visible}
+@media(hover:hover){
+  .tray-swatches button:hover .tray-remove-mark{visibility:visible}
+}#toast{position:fixed;bottom:100px;left:50%;transform:translate(-50%,10px);background:var(--ink);color:white;padding:11px 23px;border-radius:6px;z-index:30;opacity:0;pointer-events:none;font-size:13px;transition:opacity .2s,transform .2s;width:max-content;max-width:calc(100% - 32px);text-align:center}#toast.show{opacity:1;transform:translate(-50%,0)}dialog{border:0;padding:0;border-radius:12px;width:min(740px,calc(100% - 32px));max-height:90vh;color:var(--ink);background:var(--surface)}dialog::backdrop{background:#19271f75}.dialog-close{position:absolute;right:12px;top:12px;z-index:2;background:#ffffffd9;font-size:24px}.detail{display:grid;grid-template-columns:.8fr 1fr}.detail-color{min-height:430px;display:flex;align-items:center;justify-content:center}.detail-color h2{font:45px var(--serif);writing-mode:vertical-rl;letter-spacing:12px}.detail-body{padding:48px 32px 30px}.detail-body h3{font:28px var(--serif);margin:10px 0}.values{margin:24px 0}.value-row{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:7px 0;font-size:12px;gap:10px}.value-row>span{color:var(--muted)}
 .value-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;font-variant-numeric:tabular-nums}
 .value-copy{flex-shrink:0;color:var(--muted);border-radius:6px}
 .value-copy:hover{color:var(--ink)}

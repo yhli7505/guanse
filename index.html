@@ -3,7 +3,16 @@
 body{--tray-offset:20px}
 #tray{bottom:var(--tray-offset)}
 body:has(#tray:not(:empty)) #toast{bottom:calc(var(--tray-height, 80px) + var(--tray-offset) + 10px)}
-@media(hover:hover){.tray-swatches [data-action="remove-draft"]:hover:after{content:'×';position:absolute;inset:0;background:#ffffff90;font-size:22px;color:#111}}#toast{position:fixed;bottom:100px;left:50%;transform:translate(-50%,10px);background:var(--ink);color:white;padding:11px 23px;border-radius:6px;z-index:30;opacity:0;pointer-events:none;font-size:13px;transition:opacity .2s,transform .2s;width:max-content;max-width:calc(100% - 32px);text-align:center}#toast.show{opacity:1;transform:translate(-50%,0)}dialog{border:0;padding:0;border-radius:12px;width:min(740px,calc(100% - 32px));max-height:90vh;color:var(--ink);background:var(--surface)}dialog::backdrop{background:#19271f75}.dialog-close{position:absolute;right:12px;top:12px;z-index:2;background:#ffffffd9;font-size:24px}.detail{display:grid;grid-template-columns:.8fr 1fr}.detail-color{min-height:430px;display:flex;align-items:center;justify-content:center}.detail-color h2{font:45px var(--serif);writing-mode:vertical-rl;letter-spacing:12px}.detail-body{padding:48px 32px 30px}.detail-body h3{font:28px var(--serif);margin:10px 0}.values{margin:24px 0}.value-row{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:7px 0;font-size:12px;gap:10px}.value-row>span{color:var(--muted)}
+/* Center the remove icon in the swatch independently of font metrics. */
+.tray-remove-mark{
+  position:absolute;inset:0;display:grid;place-items:center;visibility:hidden;
+  border-radius:inherit;background:#ffffff90;color:#242c28;pointer-events:none
+}
+.tray-remove-mark .icon{width:16px;height:16px}
+:root:not([data-input-mode="pointer"]) .tray-swatches button:focus-visible .tray-remove-mark{visibility:visible}
+@media(hover:hover){
+  .tray-swatches button:hover .tray-remove-mark{visibility:visible}
+}#toast{position:fixed;bottom:100px;left:50%;transform:translate(-50%,10px);background:var(--ink);color:white;padding:11px 23px;border-radius:6px;z-index:30;opacity:0;pointer-events:none;font-size:13px;transition:opacity .2s,transform .2s;width:max-content;max-width:calc(100% - 32px);text-align:center}#toast.show{opacity:1;transform:translate(-50%,0)}dialog{border:0;padding:0;border-radius:12px;width:min(740px,calc(100% - 32px));max-height:90vh;color:var(--ink);background:var(--surface)}dialog::backdrop{background:#19271f75}.dialog-close{position:absolute;right:12px;top:12px;z-index:2;background:#ffffffd9;font-size:24px}.detail{display:grid;grid-template-columns:.8fr 1fr}.detail-color{min-height:430px;display:flex;align-items:center;justify-content:center}.detail-color h2{font:45px var(--serif);writing-mode:vertical-rl;letter-spacing:12px}.detail-body{padding:48px 32px 30px}.detail-body h3{font:28px var(--serif);margin:10px 0}.values{margin:24px 0}.value-row{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:7px 0;font-size:12px;gap:10px}.value-row>span{color:var(--muted)}
 .value-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;font-variant-numeric:tabular-nums}
 .value-copy{flex-shrink:0;color:var(--muted);border-radius:6px}
 .value-copy:hover{color:var(--ink)}
@@ -2617,6 +2626,7 @@ document.addEventListener('keydown',()=>{document.documentElement.dataset.inputM
 const ICONS={search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/>',heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',plus:'<path d="M12 5v14M5 12h14"/>',arrow:'<path d="M4 12h16m-6-6 6 6-6 6"/>',shuffle:'<path d="m3 5 3 0c5 0 7 14 12 14h3m-4-4 4 4-4 4M3 19h3c2 0 4-4 5-7m3-5c1-1 2-2 4-2h3m-4-4 4 4-4 4"/>',grid:'<rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/>',compact:'<path d="M4 4h3v3H4zm6 0h3v3h-3zm6 0h3v3h-3zM4 10h3v3H4zm6 0h3v3h-3zm6 0h3v3h-3zM4 16h3v3H4zm6 0h3v3h-3zm6 0h3v3h-3z"/>',copy:'<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M15 8V3H3v12h5"/>',lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',unlock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.8-1M12 14v3"/>',download:'<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>',image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/>',undo:'<path d="M4 9h10a6 6 0 0 1 0 12M4 9l5-5M4 9l5 5"/>',check:'<path d="m5 12 4 4L19 6"/>',swap:'<path d="M3 7h18l-4-4M21 17H3l4 4"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 1v2m0 18v2M1 12h2m18 0h2M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2"/>'};
 ICONS.moon='<path d="M20.9 13.1A9 9 0 0 1 10.9 3.1 9 9 0 1 0 20.9 13.1Z"/>';
 ICONS.edit='<path d="m15 5 4 4M4 20l4-1 12-12a2.8 2.8 0 0 0-4-4L4 15l-1 6Z"/>';
+ICONS.close='<path d="m6 6 12 12M18 6 6 18"/>';
 const icon=n=>`<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]||ICONS.plus}</svg>`;
 function syncThemeToggle(){const dark=document.body.classList.contains('dark'),button=$('#theme-toggle');button.setAttribute('aria-pressed',String(dark));button.title=dark?'切换为浅色':'切换为深色';button.innerHTML=icon(dark?'sun':'moon');}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -3082,7 +3092,7 @@ function renderTray(){
     <div class="tray-swatches">${draft.map((c,i)=>{
       const name=esc(c.name);
       const label=tapToReplace?`选择草稿色${name}`:`从草稿移除${name}`;
-      return `<button style="background:${c.hex}" data-action="${tapToReplace?'choose-draft-target':'remove-draft'}" data-index="${i}" aria-label="${label}" title="${name} ${c.hex}" ${tapToReplace?'aria-haspopup="dialog"':canReplace?'draggable="true"':''}></button>`;
+      return `<button style="background:${c.hex}" data-action="${tapToReplace?'choose-draft-target':'remove-draft'}" data-index="${i}" aria-label="${label}" title="${name} ${c.hex}" ${tapToReplace?'aria-haspopup="dialog"':canReplace?'draggable="true"':''}>${tapToReplace?'':`<span class="tray-remove-mark">${icon('close')}</span>`}</button>`;
     }).join('')}</div>
     <button class="text-button tray-clear" data-action="clear-draft">清空</button>
     <button class="btn primary small" data-action="draft-to-studio">${page==='studio'?'载入草稿':'继续配色'} →</button>`;

@@ -7,6 +7,7 @@ document.addEventListener('keydown',()=>{document.documentElement.dataset.inputM
 const ICONS={search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/>',heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',plus:'<path d="M12 5v14M5 12h14"/>',arrow:'<path d="M4 12h16m-6-6 6 6-6 6"/>',shuffle:'<path d="m3 5 3 0c5 0 7 14 12 14h3m-4-4 4 4-4 4M3 19h3c2 0 4-4 5-7m3-5c1-1 2-2 4-2h3m-4-4 4 4-4 4"/>',grid:'<rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/>',compact:'<path d="M4 4h3v3H4zm6 0h3v3h-3zm6 0h3v3h-3zM4 10h3v3H4zm6 0h3v3h-3zm6 0h3v3h-3zM4 16h3v3H4zm6 0h3v3h-3zm6 0h3v3h-3z"/>',copy:'<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M15 8V3H3v12h5"/>',lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',unlock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.8-1M12 14v3"/>',download:'<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>',image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/>',undo:'<path d="M4 9h10a6 6 0 0 1 0 12M4 9l5-5M4 9l5 5"/>',check:'<path d="m5 12 4 4L19 6"/>',swap:'<path d="M3 7h18l-4-4M21 17H3l4 4"/>',sun:'<circle cx="12" cy="12" r="4"/><path d="M12 1v2m0 18v2M1 12h2m18 0h2M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2"/>'};
 ICONS.moon='<path d="M20.9 13.1A9 9 0 0 1 10.9 3.1 9 9 0 1 0 20.9 13.1Z"/>';
 ICONS.edit='<path d="m15 5 4 4M4 20l4-1 12-12a2.8 2.8 0 0 0-4-4L4 15l-1 6Z"/>';
+ICONS.close='<path d="m6 6 12 12M18 6 6 18"/>';
 const icon=n=>`<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]||ICONS.plus}</svg>`;
 function syncThemeToggle(){const dark=document.body.classList.contains('dark'),button=$('#theme-toggle');button.setAttribute('aria-pressed',String(dark));button.title=dark?'切换为浅色':'切换为深色';button.innerHTML=icon(dark?'sun':'moon');}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -472,7 +473,7 @@ function renderTray(){
     <div class="tray-swatches">${draft.map((c,i)=>{
       const name=esc(c.name);
       const label=tapToReplace?`选择草稿色${name}`:`从草稿移除${name}`;
-      return `<button style="background:${c.hex}" data-action="${tapToReplace?'choose-draft-target':'remove-draft'}" data-index="${i}" aria-label="${label}" title="${name} ${c.hex}" ${tapToReplace?'aria-haspopup="dialog"':canReplace?'draggable="true"':''}></button>`;
+      return `<button style="background:${c.hex}" data-action="${tapToReplace?'choose-draft-target':'remove-draft'}" data-index="${i}" aria-label="${label}" title="${name} ${c.hex}" ${tapToReplace?'aria-haspopup="dialog"':canReplace?'draggable="true"':''}>${tapToReplace?'':`<span class="tray-remove-mark">${icon('close')}</span>`}</button>`;
     }).join('')}</div>
     <button class="text-button tray-clear" data-action="clear-draft">清空</button>
     <button class="btn primary small" data-action="draft-to-studio">${page==='studio'?'载入草稿':'继续配色'} →</button>`;

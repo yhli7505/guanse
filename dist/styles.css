@@ -325,8 +325,9 @@ select:focus-visible,:root[data-input-mode="keyboard"] select:focus{outline:none
   .tray-label{white-space:normal;line-height:1.35}
   .tray-swatches{grid-area:2/1/3/-1;min-width:0;gap:4px}
   .tray-swatches button{flex:1 1 0;max-width:44px;min-width:0;width:auto;height:34px;padding:0}
-  #tray .tray-clear{grid-area:1/2;min-width:44px;min-height:44px}
-  #tray .btn{grid-area:1/3;min-height:44px;padding-inline:8px}
+  #tray :is(.tray-clear,.btn){min-height:36px}
+  #tray .tray-clear{grid-area:1/2;min-width:44px}
+  #tray .btn{grid-area:1/3;padding-inline:8px}
   #toast{bottom:calc(var(--tray-offset) + 12px)}
 }
 @media(max-width:520px){

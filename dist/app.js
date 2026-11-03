@@ -1,5 +1,6 @@
 (()=>{
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const touchInterface=window.matchMedia('(hover: none)');
 // Native selects may keep :focus-visible after a mouse click; distinguish input modes.
 document.addEventListener('pointerdown',()=>{document.documentElement.dataset.inputMode='pointer';},{capture:true});
 document.addEventListener('keydown',()=>{document.documentElement.dataset.inputMode='keyboard';},{capture:true});
@@ -123,12 +124,18 @@ function scheduleFeatureRotation(){
   const carousel=$('#feature-carousel');
   if(!carousel||window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)return;
   featureTimer=setInterval(()=>{
-    if(document.hidden||!carousel.isConnected||carousel.matches(':hover, :focus-within')||$('#dialog').open)return;
+    const hovered=!touchInterface.matches&&carousel.matches(':hover');
+    const focused=carousel.matches(':focus-within')&&document.documentElement.dataset.inputMode!=='pointer';
+    if(document.hidden||!carousel.isConnected||hovered||focused||$('#dialog').open)return;
     moveFeatureSlide(1,false);
   },4000);
 }
 
-function renderExplore(){$('#main').innerHTML=`<section class="hero"><div class="hero-copy"><div class="eyebrow">中国传统色谱</div><h1>万物有色，<br><span>观之有趣。</span></h1><p>从山川草木，到器物日常。收集 ${colors.length} 种中国传统色，<br>在细微的色彩之间，找到属于你的东方灵感。</p><div class="hero-actions"><a class="btn primary" href="#studio">开始一场配色 ${icon('arrow')}</a><button class="btn" data-action="random-detail">${icon('shuffle')} 遇见一色</button></div></div>${renderFeatureCarousel()}</section><section aria-labelledby="library-title"><div class="section-head"><div class="section-title"><h2 id="library-title">中国色彩档案</h2><span class="meta">${colors.length} 色 · 十种色系</span></div><label class="searchbox">${icon('search')}<input id="search" aria-label="搜索颜色名称或色值" placeholder="搜索色名或色值，如：青、#3D6E53" value="${esc(query)}"></label></div><div class="filters" aria-label="按色系筛选">${families.map(([id,label,hex])=>`<button class="filter ${filter===id?'active':''}" data-action="filter" data-family="${id}" aria-pressed="${filter===id}">${id==='all'?'':`<span class="dot" style="background:${hex}"></span>`}${label}${id==='all'?'色彩':''}</button>`).join('')}</div><div class="resultbar"><span id="result-count"></span><div class="resultbar-right"><button class="filter pure-mode ${pureColors?'active':''}" data-action="pure-mode" aria-pressed="${pureColors}" title="隐藏色卡名称、编号和色值">纯色模式</button><label>排序 <select id="sort" aria-label="颜色排序"><option value="curated">编辑精选</option><option value="hue">按色相</option><option value="light">由浅入深</option><option value="dark">由深至浅</option><option value="name">按名称</option></select></label><div class="toggle"><button class="icon-button ${!compact?'active':''}" data-action="density" data-value="normal" aria-label="舒展布局" aria-pressed="${!compact}">${icon('grid')}</button><button class="icon-button ${compact?'active':''}" data-action="density" data-value="compact" aria-label="紧凑布局" aria-pressed="${compact}">${icon('compact')}</button></div></div></div><div id="color-grid" class="color-grid ${compact?'compact':''} ${pureColors?'pure-colors':''}"></div><div class="loadmore" id="load-more"></div></section>`;$('#sort').value=sort;updateFeatureSlide();scheduleFeatureRotation();renderColorGrid()}
+function renderExplore(){
+  const filterScroll=$('#main .filters[aria-label="按色系筛选"]')?.scrollLeft??0;
+  $('#main').innerHTML=`<section class="hero"><div class="hero-copy"><div class="eyebrow">中国传统色谱</div><h1>万物有色，<br><span>观之有趣。</span></h1><p>从山川草木，到器物日常。收集 ${colors.length} 种中国传统色，<br>在细微的色彩之间，找到属于你的东方灵感。</p><div class="hero-actions"><a class="btn primary" href="#studio">开始一场配色 ${icon('arrow')}</a><button class="btn" data-action="random-detail">${icon('shuffle')} 遇见一色</button></div></div>${renderFeatureCarousel()}</section><section aria-labelledby="library-title"><div class="section-head"><div class="section-title"><h2 id="library-title">中国色彩档案</h2><span class="meta">${colors.length} 色 · 十种色系</span></div><label class="searchbox">${icon('search')}<input id="search" aria-label="搜索颜色名称或色值" placeholder="搜索色名或色值，如：青" value="${esc(query)}"></label></div><div class="filters" aria-label="按色系筛选">${families.map(([id,label,hex])=>`<button class="filter ${filter===id?'active':''}" data-action="filter" data-family="${id}" aria-pressed="${filter===id}">${id==='all'?'':`<span class="dot" style="background:${hex}"></span>`}${label}${id==='all'?'色彩':''}</button>`).join('')}</div><div class="resultbar"><span id="result-count"></span><div class="resultbar-right"><button class="filter pure-mode ${pureColors?'active':''}" data-action="pure-mode" aria-pressed="${pureColors}" title="隐藏色卡名称、编号和色值">纯色模式</button><label>排序 <select id="sort" aria-label="颜色排序"><option value="curated">编辑精选</option><option value="hue">按色相</option><option value="light">由浅入深</option><option value="dark">由深至浅</option><option value="name">按名称</option></select></label><div class="toggle"><button class="icon-button ${!compact?'active':''}" data-action="density" data-value="normal" aria-label="舒展布局" aria-pressed="${!compact}">${icon('grid')}</button><button class="icon-button ${compact?'active':''}" data-action="density" data-value="compact" aria-label="紧凑布局" aria-pressed="${compact}">${icon('compact')}</button></div></div></div><div id="color-grid" class="color-grid ${compact?'compact':''} ${pureColors?'pure-colors':''}"></div><div class="loadmore" id="load-more"></div></section>`;$('#sort').value=sort;updateFeatureSlide();scheduleFeatureRotation();renderColorGrid();
+  $('#main .filters[aria-label="按色系筛选"]').scrollLeft=filterScroll;
+}
 function filteredColors(){let a=colors.filter(c=>(filter==='all'||c.family===filter)&&(!query||c.name.toLowerCase().includes(query.toLowerCase())||c.hex.toLowerCase().includes(query.toLowerCase())));if(sort==='curated'){const first=['老绿','青虾色','龙泉青瓷釉色','浅青瓷釉色','鸭蛋青','银白色','猩红','硃砂','赭红','金黄','石黄','乳黄色','黛蓝','玉石蓝','蟹蓝','银蓝','浅藤紫','丁香紫','枣红','肉红','浅粉','甘石粉','茶绿','浅草绿','桂皮色','骆驼色','米灰','雪灰','油烟墨','百草霜'];a.sort((x,y)=>(first.includes(x.name)?first.indexOf(x.name):-1+1000)-(first.includes(y.name)?first.indexOf(y.name):-1+1000))}if(sort==='hue')a.sort((x,y)=>hsl(x.hex)[0]-hsl(y.hex)[0]);if(sort==='light')a.sort((x,y)=>luminance(y.hex)-luminance(x.hex));if(sort==='dark')a.sort((x,y)=>luminance(x.hex)-luminance(y.hex));if(sort==='name')a.sort((x,y)=>x.name.localeCompare(y.name,'zh'));return a}
 function stopColorLoader(){
   if(colorLoader){colorLoader.disconnect();colorLoader=null;}
@@ -197,7 +204,7 @@ function swapStudioColors(index,target){
   sync();
   renderStudio();
 }
-function renderStudio(){if(studio.length<2)studio=themeColors(themes[0]);$('#main').innerHTML=pageHead('配色工作台','让一抹心动，变成一组好颜色。锁定喜欢的颜色，再探索新的可能。',`<button class="btn primary" data-action="save-studio">${icon('heart')} 保存配色</button>`)+`<div class="studio-toolbar"><button class="btn" data-action="generate">${icon('shuffle')} 生成配色 <span class="meta">空格键</span></button><select id="harmony" aria-label="配色生成规则"><option value="curated">灵感组合</option><option value="analogous">相近色相</option><option value="complement">互补色相</option><option value="random">自由随机</option></select><button class="btn" data-action="undo" ${history.length?'':'disabled'}>${icon('undo')} 撤销</button><button class="btn" data-action="add-studio" ${studio.length>=8?'disabled':''}>${icon('plus')} 添加颜色</button><span class="meta">${studio.length} / 8 色</span></div><div class="studio-colors">${studio.map((c,i)=>`<div class="studio-color" data-draft-studio="${i}" draggable="true" style="background:${c.hex};color:${ink(c.hex)}"><button class="icon-button remove-color" data-action="remove-studio" data-index="${i}" aria-label="移除${esc(c.name)}" ${studio.length<=2?'disabled':''}>×</button><button class="icon-button move-arrow move-prev" data-action="move" data-index="${i}" data-step="-1" aria-label="${i===0?'与最后一张色卡交换':`将${esc(c.name)}前移一位`}" title="${i===0?'与最后一张交换':'前移一位'}">${icon('arrow')}</button><button class="icon-button move-arrow move-next" data-action="move" data-index="${i}" data-step="1" aria-label="${i===studio.length-1?'与第一张色卡交换':`将${esc(c.name)}后移一位`}" title="${i===studio.length-1?'与第一张交换':'后移一位'}">${icon('arrow')}</button><h2 title="${esc(c.name)}">${esc(shortColorName(c.name,4))}</h2><input class="color-edit" data-edit="${i}" value="${c.hex}" aria-label="第${i+1}色HEX" spellcheck="false" maxlength="7"><div class="swatch-tools"><button class="icon-button ${c.locked?'locked':''}" data-action="lock" data-index="${i}" aria-label="${c.locked?'解锁':'锁定'}第${i+1}色" aria-pressed="${!!c.locked}">${icon(c.locked?'lock':'unlock')}</button><button class="icon-button" data-action="copy" data-value="${c.hex}" aria-label="复制第${i+1}色">${icon('copy')}</button><label class="icon-button color-picker-control" title="调色">${icon('edit')}<input type="color" value="${c.hex}" data-picker="${i}" aria-label="调整第${i+1}色：${esc(c.name)}"></label></div></div>`).join('')}</div><div class="studio-bottom"><span class="meta">拖动色卡交换位置 · 点击色值或调色图标可编辑 · 随机生成时保留锁定色 · 支持 2–8 色</span><div class="export-menu"><button class="btn small" data-action="copy-all">${icon('copy')} 复制全部</button>${['PNG','SVG','CSS','JSON'].map(v=>`<button class="btn small" data-action="export" data-format="${v}">${icon('download')} ${v}</button>`).join('')}</div></div><div class="preview-row"><section class="panel"><h3>配色应用示意</h3>${designPreview(studio)}</section>${renderStudioContrast()}</div>`;$('#harmony').value=harmony}
+function renderStudio(){if(studio.length<2)studio=themeColors(themes[0]);$('#main').innerHTML=pageHead('配色工作台','让一抹心动，变成一组好颜色。锁定喜欢的颜色，再探索新的可能。',`<button class="btn primary" data-action="save-studio">${icon('heart')} 保存配色</button>`)+`<div class="studio-toolbar"><button class="btn" data-action="generate">${icon('shuffle')} 生成配色 <span class="meta keyboard-hint">空格键</span></button><select id="harmony" aria-label="配色生成规则"><option value="curated">灵感组合</option><option value="analogous">相近色相</option><option value="complement">互补色相</option><option value="random">自由随机</option></select><button class="btn" data-action="undo" ${history.length?'':'disabled'}>${icon('undo')} 撤销</button><button class="btn" data-action="add-studio" ${studio.length>=8?'disabled':''}>${icon('plus')} 添加颜色</button><span class="meta">${studio.length} / 8 色</span></div><div class="studio-colors">${studio.map((c,i)=>`<div class="studio-color" data-draft-studio="${i}" draggable="true" style="background:${c.hex};color:${ink(c.hex)}"><button class="icon-button remove-color" data-action="remove-studio" data-index="${i}" aria-label="移除${esc(c.name)}" ${studio.length<=2?'disabled':''}>×</button><button class="icon-button move-arrow move-prev" data-action="move" data-index="${i}" data-step="-1" aria-label="${i===0?'与最后一张色卡交换':`将${esc(c.name)}前移一位`}" title="${i===0?'与最后一张交换':'前移一位'}">${icon('arrow')}</button><button class="icon-button move-arrow move-next" data-action="move" data-index="${i}" data-step="1" aria-label="${i===studio.length-1?'与第一张色卡交换':`将${esc(c.name)}后移一位`}" title="${i===studio.length-1?'与第一张交换':'后移一位'}">${icon('arrow')}</button><h2 title="${esc(c.name)}">${esc(shortColorName(c.name,4))}</h2><input class="color-edit" data-edit="${i}" value="${c.hex}" aria-label="第${i+1}色HEX" spellcheck="false" maxlength="7"><div class="swatch-tools"><button class="icon-button ${c.locked?'locked':''}" data-action="lock" data-index="${i}" aria-label="${c.locked?'解锁':'锁定'}第${i+1}色" aria-pressed="${!!c.locked}">${icon(c.locked?'lock':'unlock')}</button><button class="icon-button" data-action="copy" data-value="${c.hex}" aria-label="复制第${i+1}色">${icon('copy')}</button><label class="icon-button color-picker-control" title="调色">${icon('edit')}<input type="color" value="${c.hex}" data-picker="${i}" aria-label="调整第${i+1}色：${esc(c.name)}"></label></div></div>`).join('')}</div><div class="studio-bottom"><span class="meta"><span class="desktop-move-hint">拖动色卡交换位置</span><span class="touch-move-hint">用箭头交换色卡位置</span> · 点击色值或调色图标可编辑 · 随机生成时保留锁定色 · 支持 2–8 色</span><div class="export-menu"><button class="btn small" data-action="copy-all">${icon('copy')} 复制全部</button>${['PNG','SVG','CSS','JSON'].map(v=>`<button class="btn small" data-action="export" data-format="${v}">${icon('download')} ${v}</button>`).join('')}</div></div><div class="preview-row"><section class="panel"><h3>配色应用示意</h3>${designPreview(studio)}</section>${renderStudioContrast()}</div>`;$('#harmony').value=harmony}
 let studioTextIndex=0;
 let studioBackgroundIndex=1;
 
@@ -361,7 +368,7 @@ function renderExtract(){
             <img id="extract-image" src="${imageURL}" alt="待取色的图片" draggable="false">
             <span id="extract-marker" class="extract-marker" aria-hidden="true" ${pickedPixel?'':'hidden'}></span>
           </button>`:`<div class="extract-empty">
-            <h2 id="extract-source-title">${extractBusy?'正在读取图片…':'拖入图片，开始取色'}</h2>
+            <h2 id="extract-source-title">${extractBusy?'正在读取图片…':touchInterface.matches?'选一张图片，开始取色':'拖入图片，开始取色'}</h2>
             <button id="extract-choose" type="button" class="btn primary" ${extractBusy?'disabled':''}>选择图片 ${icon('plus')}</button>
             <p class="extract-footnote">JPG、PNG 或 WebP，最大 20 MB。图片仅在本地处理。</p>
           </div>`}
@@ -448,7 +455,50 @@ function updateContrastColorName(id){
 }
 function updateContrast(){updateContrastColorName('fg');updateContrastColorName('bg');let r=ratio(fg,bg);$('#contrast-preview').innerHTML=`<div class="contrast-sample" data-draft-contrast="bg" style="background:${bg};color:${fg}"><span style="font-size:11px;letter-spacing:2px">浓淡相宜，字字清晰</span><h2 data-draft-contrast="fg">色彩有温度<br>文字有回响。</h2><p data-draft-contrast="fg">好的配色，让每一个字都被看见。</p><span style="font-size:12px">普通文字预览 · 12px / 15px</span></div>`;$('#contrast-results').innerHTML=`<div class="contrast-score">${r.toFixed(2)} <span class="meta">: 1</span></div>${[['普通文字 AA',4.5],['普通文字 AAA',7],['大号文字 AA',3],['大号文字 AAA',4.5]].map(([n,v])=>`<div class="check-row"><span>${n}</span><span class="${r>=v?'pass':'fail'}">${r>=v?'通过':'未通过'}</span></div>`).join('')}`}
 function renderCollection(){$('#main').innerHTML=pageHead('我的收藏','把喜欢的颜色留在这里，下一次灵感就从这里开始。',`<div class="studio-toolbar"><button class="btn" data-action="backup">${icon('download')} 备份收藏</button><button class="btn" data-action="import">导入备份</button><input class="hidden" type="file" accept="application/json" id="import-input"></div>`)+`<div class="tabs"><button class="${collectionTab==='colors'?'active':''}" data-action="collection-tab" data-value="colors">单色收藏 ${favorites.size}</button><button class="${collectionTab==='palettes'?'active':''}" data-action="collection-tab" data-value="palettes">配色方案 ${saved.length}</button></div>${collectionTab==='colors'?`<div class="color-grid">${colors.filter(c=>favorites.has(c.id)).map(colorCard).join('')||'<div class="empty"><h3>从一抹心动开始</h3><p>在色卡上点击爱心，把喜欢的颜色收藏到这里。</p><a class="btn primary" href="#explore">去探索中国色 →</a></div>'}</div>`:`<div class="palette-grid">${saved.map((p,i)=>paletteCard(p,i,true)).join('')||'<div class="empty"><h3>你的配色故事，还未开始</h3><p>收藏一组灵感，或在工作台保存自己的配色。</p><a class="btn primary" href="#palettes">寻找配色灵感 →</a></div>'}</div>`}<p class="notice" style="margin-top:28px">收藏保存在此浏览器中。导出备份后，可以在其他设备导入；清除浏览器数据会移除本地收藏。</p>`}
-function renderTray(){if(!['explore','studio','contrast'].includes(page)||!draft.length){$('#tray').innerHTML='';return}$('#tray').innerHTML=`<div class="tray-label">配色草稿 <strong>${draft.length}/8</strong>${page==='explore'?'':`<span class="tray-hint">${page==='studio'?'拖到色卡上替换颜色':'拖到文字色或背景色上替换'}</span>`}</div><div class="tray-swatches">${draft.map((c,i)=>`<button style="background:${c.hex}" data-action="remove-draft" data-index="${i}" aria-label="从草稿移除${esc(c.name)}" title="${esc(c.name)} ${c.hex}${page==='explore'?'':' · 拖动替换，点击移除'}" ${page==='explore'?'':'draggable="true"'}></button>`).join('')}</div><button class="text-button" data-action="clear-draft">清空</button><button class="btn primary small" data-action="draft-to-studio">继续配色 →</button>`}
+const tray=$('#tray');
+new ResizeObserver(()=>{
+  document.documentElement.style.setProperty('--tray-height',`${tray.getBoundingClientRect().height}px`);
+}).observe(tray,{box:'border-box'});
+
+function renderTray(){
+  if(!['explore','studio','contrast'].includes(page)||!draft.length){
+    tray.replaceChildren();
+    return;
+  }
+  const canReplace=page!=='explore';
+  const tapToReplace=canReplace&&touchInterface.matches;
+  const hint=tapToReplace?'点选色块替换':page==='studio'?'拖到色卡上替换颜色':'拖到文字色或背景色上替换';
+  tray.innerHTML=`<div class="tray-label">配色草稿 <strong>${draft.length}/8</strong>${canReplace?`<span class="tray-hint">${hint}</span>`:''}</div>
+    <div class="tray-swatches">${draft.map((c,i)=>{
+      const name=esc(c.name);
+      const label=tapToReplace?`选择草稿色${name}`:`从草稿移除${name}`;
+      return `<button style="background:${c.hex}" data-action="${tapToReplace?'choose-draft-target':'remove-draft'}" data-index="${i}" aria-label="${label}" title="${name} ${c.hex}" ${tapToReplace?'aria-haspopup="dialog"':canReplace?'draggable="true"':''}></button>`;
+    }).join('')}</div>
+    <button class="text-button tray-clear" data-action="clear-draft">清空</button>
+    <button class="btn primary small" data-action="draft-to-studio">${page==='studio'?'载入草稿':'继续配色'} →</button>`;
+}
+touchInterface.addEventListener('change',renderTray);
+
+function chooseDraftTarget(index){
+  const color=draft[index];
+  if(!color)return;
+  const targets=page==='studio'
+    ?studio.map((c,i)=>[i,`第 ${i+1} 色 · ${c.name}`])
+    :[['fg','文字颜色'],['bg','背景颜色']];
+  openDialog(`<form class="dialog-padded" id="draft-apply-form" data-index="${index}">
+    <h2>使用草稿色</h2>
+    <p class="draft-choice"><span style="background:${color.hex}" aria-hidden="true"></span>${esc(color.name)} · ${color.hex}</p>
+    <div class="field">
+      <label for="draft-target">替换位置</label>
+      <select id="draft-target" name="target">${targets.map(([value,label])=>`<option value="${value}">${esc(label)}</option>`).join('')}</select>
+    </div>
+    <div class="draft-dialog-actions">
+      <button class="btn primary" type="submit">替换颜色</button>
+      <button class="btn" type="button" data-action="remove-draft" data-index="${index}">移除草稿色</button>
+    </div>
+  </form>`);
+}
+
 let draggedDraftColor=null;
 let draggedStudioCard=null;
 let activeColorDropTarget=null;
@@ -491,7 +541,7 @@ function replaceWithDraft(target,color){
 document.addEventListener('pointerdown',event=>{
   const card=event.target.closest('.studio-color');
   // Keep text selection and button interactions native within each card.
-  if(card)card.draggable=!event.target.closest('input,button,label');
+  if(card)card.draggable=event.pointerType!=='touch'&&!event.target.closest('input,button,label');
 });
 
 document.addEventListener('dragstart',event=>{
@@ -584,7 +634,13 @@ case 'favorite': {
   toast((selected?'已收藏 ':'已取消收藏 ')+c.name);
   break;
 }
-case 'add':if(draft.length>=8){toast('草稿最多 8 色，可先移除一色');break}if(draft.some(x=>x.hex===c.hex)){toast('这抹颜色已在草稿里');break}draft.push({...c,locked:false});sync();toast(c.name+' 已加入配色草稿');break;case 'remove-draft':draft.splice(i,1);sync();break;case 'clear-draft':draft=[];sync();break;case 'draft-to-studio':
+case 'add':if(draft.length>=8){toast('草稿最多 8 色，可先移除一色');break}if(draft.some(x=>x.hex===c.hex)){toast('这抹颜色已在草稿里');break}draft.push({...c,locked:false});sync();toast(c.name+' 已加入配色草稿');break;case 'choose-draft-target':chooseDraftTarget(i);break;
+case 'remove-draft':
+  if(el.closest('#draft-apply-form'))$('#dialog').close();
+  draft.splice(i,1);
+  sync();
+  break;
+case 'clear-draft':draft=[];sync();break;case 'draft-to-studio':
   if(draft.length<2){toast('再添加一色，就能开始配色');break}
   pushHistory();
   studio=draft.map(c=>({...c}));
@@ -621,7 +677,25 @@ if(el.id==='studio-contrast-text'||el.id==='studio-contrast-background'){
   return;
 }
 if(el.id==='sort'){sort=el.value;renderColorGrid()}if(el.id==='harmony')harmony=el.value;if(el.dataset.edit!==undefined||el.dataset.picker!==undefined){const i=Number(el.dataset.edit??el.dataset.picker),v=el.value.toUpperCase();if(!validHex(v)){toast('请输入完整的 HEX 色值，例如 #3D6E53');el.value=studio[i].hex;return}pushHistory();studio[i]={...studio[i],hex:v,name:colors.find(c=>c.hex===v)?.name||'自定义色'};sync();renderStudio()}if(el.id==='image-input'&&el.files[0])extractImage(el.files[0]);if(el.id==='import-input')importBackup(el.files[0])});
-document.addEventListener('submit',e=>{if(e.target.id==='save-form'){e.preventDefault();const name=$('#palette-name').value.trim();if(!name){toast('请为这组配色输入名称');return}savePalette(studio,name);$('#dialog').close()}});
+document.addEventListener('submit',e=>{
+  if(e.target.id==='draft-apply-form'){
+    e.preventDefault();
+    const color=draft[Number(e.target.dataset.index)];
+    const value=e.target.elements.target.value;
+    const selector=page==='studio'?`.studio-color[data-draft-studio="${value}"]`:`.field[data-draft-contrast="${value}"]`;
+    const target=$(selector);
+    if(!target||!color)return;
+    $('#dialog').close();
+    replaceWithDraft(target,color);
+    $(selector)?.scrollIntoView({block:'nearest'});
+  }else if(e.target.id==='save-form'){
+    e.preventDefault();
+    const name=$('#palette-name').value.trim();
+    if(!name){toast('请为这组配色输入名称');return}
+    savePalette(studio,name);
+    $('#dialog').close();
+  }
+});
 document.addEventListener('keydown',e=>{const editing=/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable;if(e.key==='/'&&!editing&&!$('#dialog').open&&page==='explore'){e.preventDefault();$('#search').focus()}if(e.code==='Space'&&!editing&&e.target.tagName!=='BUTTON'&&e.target.tagName!=='A'&&!$('#dialog').open&&page==='studio'){e.preventDefault();generate()}});
 $('#dialog').addEventListener('click',e=>{if(e.target===$('#dialog')){const r=$('#dialog').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('#dialog').close()}});
 window.addEventListener('hashchange',()=>{if($('#dialog').open)$('#dialog').close();render();window.scrollTo({top:0,behavior:'instant'})});

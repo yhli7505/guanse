@@ -369,11 +369,12 @@ select:focus-visible,:root[data-input-mode="keyboard"] select:focus{outline:none
     inset-inline-end:max(24px, calc((100% - 1440px) / 2 + 48px));
     bottom:calc(var(--tray-height, 0px) + var(--tray-offset) + 12px)
   }
+  .back-to-top-icon{display:flex}
   .back-to-top .icon{width:16px;height:16px;transform:rotate(-90deg)}
 }
 </style></head>
 <body><a class="skip-link" href="#main">跳转到内容</a><header class="header"><a class="brand" href="#explore" aria-label="观色首页"><span class="brand-mark"><i></i><i></i><i></i><i></i></span><strong>观色</strong></a><nav aria-label="主导航"><a href="#explore" data-nav="explore">探索中国色</a><a href="#palettes" data-nav="palettes">配色灵感</a><a href="#studio" data-nav="studio">配色工作台</a><a href="#extract" data-nav="extract">图片取色</a><a href="#contrast" data-nav="contrast">对比度检测</a></nav><div class="header-actions"><a class="collection-link" href="#collection"><span data-icon="heart"></span><span>我的收藏</span><span id="saved-count">0</span></a><button id="theme-toggle" class="icon-button theme-toggle" type="button" data-action="toggle-theme" aria-label="深色模式" aria-pressed="false" title="切换为深色"><span data-icon="moon"></span></button></div></header>
-<main id="main" tabindex="-1"></main><button id="back-to-top" type="button" class="btn back-to-top" data-action="back-to-top" hidden><span data-icon="arrow"></span> 回到顶部</button><footer><a class="brand" href="#explore">观色 <span class="brand-caption">一色一境，万物有情。</span></a><span>让东方色彩，成为日常灵感。</span></footer><div id="tray"></div><div id="toast" role="status" aria-live="polite"></div><dialog id="dialog"><button class="dialog-close icon-button" aria-label="关闭弹窗" data-action="close">×</button><div id="dialog-content"></div></dialog><script>window.GUANSE_COLORS = [
+<main id="main" tabindex="-1"></main><button id="back-to-top" type="button" class="btn back-to-top" data-action="back-to-top" hidden><span class="back-to-top-icon" data-icon="arrow"></span><span>回到顶部</span></button><footer><a class="brand" href="#explore">观色 <span class="brand-caption">一色一境，万物有情。</span></a><span>让东方色彩，成为日常灵感。</span></footer><div id="tray"></div><div id="toast" role="status" aria-live="polite"></div><dialog id="dialog"><button class="dialog-close icon-button" aria-label="关闭弹窗" data-action="close">×</button><div id="dialog-content"></div></dialog><script>window.GUANSE_COLORS = [
   {
     "id": 0,
     "name": "锈红",

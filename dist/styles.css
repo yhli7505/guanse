@@ -368,5 +368,6 @@ select:focus-visible,:root[data-input-mode="keyboard"] select:focus{outline:none
     inset-inline-end:max(24px, calc((100% - 1440px) / 2 + 48px));
     bottom:calc(var(--tray-height, 0px) + var(--tray-offset) + 12px)
   }
+  .back-to-top-icon{display:flex}
   .back-to-top .icon{width:16px;height:16px;transform:rotate(-90deg)}
 }

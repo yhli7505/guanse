@@ -143,6 +143,16 @@ function renderExplore(){
   $('#main').innerHTML=`<section class="hero"><div class="hero-copy"><div class="eyebrow">中国传统色谱</div><h1>万物有色，<br><span>观之有趣。</span></h1><p>从山川草木，到器物日常。<br>在细微的色彩之间，找到属于你的东方灵感。</p><div class="hero-actions"><a class="btn primary" href="#studio">开始一场配色 ${icon('arrow')}</a><button class="btn" data-action="random-detail">${icon('shuffle')} 遇见一色</button></div></div>${renderFeatureCarousel()}</section><section aria-labelledby="library-title"><div class="section-head"><div class="section-title"><h2 id="library-title">中国色彩档案</h2><span class="meta">${colors.length} 色 · 十种色系</span></div><label class="searchbox">${icon('search')}<input id="search" aria-label="搜索颜色名称或色值" placeholder="搜索色名或色值，如：青" value="${esc(query)}"></label></div><div class="filters" aria-label="按色系筛选">${families.map(([id,label,hex])=>`<button class="filter ${filter===id?'active':''}" data-action="filter" data-family="${id}" aria-pressed="${filter===id}">${id==='all'?'':`<span class="dot" style="background:${hex}"></span>`}${label}${id==='all'?'色彩':''}</button>`).join('')}</div><div class="resultbar"><span id="result-count"></span><div class="resultbar-right"><button class="filter pure-mode ${pureColors?'active':''}" data-action="pure-mode" aria-pressed="${pureColors}" title="隐藏色卡名称、编号和色值">纯色模式</button><label>排序 <select id="sort" aria-label="颜色排序"><option value="curated">编辑精选</option><option value="hue">按色相</option><option value="light">由浅入深</option><option value="dark">由深至浅</option><option value="name">按名称</option></select></label><div class="toggle"><button class="icon-button ${!compact?'active':''}" data-action="density" data-value="normal" aria-label="舒展布局" aria-pressed="${!compact}">${icon('grid')}</button><button class="icon-button ${compact?'active':''}" data-action="density" data-value="compact" aria-label="紧凑布局" aria-pressed="${compact}">${icon('compact')}</button></div></div></div><div id="color-grid" class="color-grid ${compact?'compact':''} ${pureColors?'pure-colors':''}"></div><div class="loadmore" id="load-more"></div></section>`;$('#sort').value=sort;updateFeatureSlide();scheduleFeatureRotation();renderColorGrid();
   $('#main .filters[aria-label="按色系筛选"]').scrollLeft=filterScroll;
 }
+function setColorFamily(family){
+  filter=family;
+  limit=36;
+  $$('#main [data-action="filter"]').forEach(button=>{
+    const active=button.dataset.family===filter;
+    button.classList.toggle('active',active);
+    button.setAttribute('aria-pressed',String(active));
+  });
+  renderColorGrid();
+}
 function filteredColors(){let a=colors.filter(c=>(filter==='all'||c.family===filter)&&(!query||c.name.toLowerCase().includes(query.toLowerCase())||c.hex.toLowerCase().includes(query.toLowerCase())));if(sort==='curated'){const first=['老绿','青虾色','龙泉青瓷釉色','浅青瓷釉色','鸭蛋青','银白色','猩红','硃砂','赭红','金黄','石黄','乳黄色','黛蓝','玉石蓝','蟹蓝','银蓝','浅藤紫','丁香紫','枣红','肉红','浅粉','甘石粉','茶绿','浅草绿','桂皮色','骆驼色','米灰','雪灰','油烟墨','百草霜'];a.sort((x,y)=>(first.includes(x.name)?first.indexOf(x.name):-1+1000)-(first.includes(y.name)?first.indexOf(y.name):-1+1000))}if(sort==='hue')a.sort((x,y)=>hsl(x.hex)[0]-hsl(y.hex)[0]);if(sort==='light')a.sort((x,y)=>luminance(y.hex)-luminance(x.hex));if(sort==='dark')a.sort((x,y)=>luminance(x.hex)-luminance(y.hex));if(sort==='name')a.sort((x,y)=>x.name.localeCompare(y.name,'zh'));return a}
 function stopColorLoader(){
   if(colorLoader){colorLoader.disconnect();colorLoader=null;}
@@ -697,7 +707,13 @@ case 'clear-draft':draft=[];sync();break;case 'draft-to-studio':
   if(page==='studio')renderStudio();
   else location.hash='studio';
   break;
-case 'filter':filter=el.dataset.family;limit=36;renderExplore();break;case 'reset-filter':filter='all';query='';limit=36;renderExplore();break;case 'pure-mode':pureColors=!pureColors;persist('pure-colors',pureColors);$('#color-grid').classList.toggle('pure-colors',pureColors);el.classList.toggle('active',pureColors);el.setAttribute('aria-pressed',String(pureColors));break;case 'density':compact=el.dataset.value==='compact';renderExplore();break;case 'theme-filter':themeFilter=el.dataset.value;renderPalettes();break;case 'use-feature-theme':
+case 'filter':setColorFamily(el.dataset.family);break;
+case 'reset-filter':
+  query='';
+  $('#search').value='';
+  setColorFamily('all');
+  break;
+case 'pure-mode':pureColors=!pureColors;persist('pure-colors',pureColors);$('#color-grid').classList.toggle('pure-colors',pureColors);el.classList.toggle('active',pureColors);el.setAttribute('aria-pressed',String(pureColors));break;case 'density':compact=el.dataset.value==='compact';renderExplore();break;case 'theme-filter':themeFilter=el.dataset.value;renderPalettes();break;case 'use-feature-theme':
 case 'use-theme':
   pushHistory();
   studio=themeColors(themes[i]);
